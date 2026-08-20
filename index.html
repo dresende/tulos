@@ -580,10 +580,11 @@
 
   /* panels */
   .split {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 18px;
   }
+  .split > .panel { flex: 1 1 300px; }
   .panel {
     background: linear-gradient(165deg, var(--panel), rgba(30,30,30,.4));
     border: 1px solid var(--panel-edge);
@@ -592,6 +593,19 @@
   }
   .panel h2 { font-size: 1.5rem; margin-bottom: 12px; max-width: none; }
   .panel p { color: var(--ink-dim); max-width: none; }
+  .panel .langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .panel .langs span {
+    font-size: .82rem;
+    color: var(--ink-dim);
+    border: 1px solid var(--panel-edge);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
   .panel.privacy { border-color: rgba(29,158,117,.4); }
   .panel.privacy .kicker { color: var(--teal); }
   .panel.privacy a { color: var(--teal); }
@@ -683,9 +697,9 @@
       <div class="island"></div>
       <div class="card c-pink top"><span class="pts">9</span><span class="who">Ana</span></div>
       <div class="divider">
-        <span class="chip flipped">FIRST TO 11</span>
+        <span class="chip flipped">FIRST TO 10</span>
         <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
-        <span class="chip">FIRST TO 11</span>
+        <span class="chip">FIRST TO 10</span>
       </div>
       <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
     </div>
@@ -716,7 +730,7 @@
         score, swipe down to take a point back.</p>
         <p>The split is a fixed 50&#8211;50 &mdash; a fair playing field however
         far ahead you are &mdash; and the divider between you carries the
-        target: <b>first to 11</b>.</p>
+        target: <b>first to 10</b>.</p>
       </div>
       <!-- SWAP: screenshots/face-to-face.png -->
       <div class="phone" aria-hidden="true">
@@ -724,9 +738,9 @@
           <div class="island"></div>
           <div class="card c-pink top"><span class="pts">9</span><span class="who">Ana</span></div>
           <div class="divider">
-            <span class="chip flipped">FIRST TO 11</span>
+            <span class="chip flipped">FIRST TO 10</span>
             <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
-            <span class="chip">FIRST TO 11</span>
+            <span class="chip">FIRST TO 10</span>
           </div>
           <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
         </div>
@@ -838,7 +852,7 @@
             <span class="crown">&#127942;</span>
             <span class="title">Winner!</span>
             <span class="name">Ana</span>
-            <span class="score">11</span>
+            <span class="score">10</span>
             <span class="name">points</span>
             <span class="again">Keep playing</span>
           </div>
@@ -924,6 +938,22 @@
         <p>No subscription, no ads, no in-app purchases, no upsell at the
         moment someone wins. Buy it once and it is yours.</p>
         <p>Download it mid-game-night and you are scoring in seconds.</p>
+      </div>
+      <div class="panel">
+        <p class="kicker">Speaks your language</p>
+        <h2>Eight languages, voice included.</h2>
+        <p>Every word in Tulos is translated &mdash; and the spoken scores use
+        your own language's system voice, offline.</p>
+        <div class="langs">
+          <span>English</span>
+          <span>Deutsch</span>
+          <span>Espa&ntilde;ol</span>
+          <span>Fran&ccedil;ais</span>
+          <span>Italiano</span>
+          <span>&#26085;&#26412;&#35486;</span>
+          <span>Portugu&ecirc;s</span>
+          <span>&#31616;&#20307;&#20013;&#25991;</span>
+        </div>
       </div>
       <div class="panel privacy">
         <p class="kicker">Private by design</p>
