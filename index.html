@@ -447,26 +447,72 @@
   }
   .sheet .row .amt { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
 
-  /* winner */
-  .win { align-items: center; justify-content: center; gap: 6px; position: relative; }
-  .win .crown { font-size: 1.4rem; }
-  .win .title {
+  /* winner: the fill takes the whole table, and face-to-face duplicates
+     the announcement so neither player reads the result upside down */
+  .win-screen {
+    background: var(--pink);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 26px 0;
+    position: relative;
+  }
+  .win-screen > *:not(.confetti) { position: relative; z-index: 1; }
+  .announce {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    min-height: 0;
+  }
+  .announce.flipped { transform: rotate(180deg); }
+  .announce .trophy {
+    width: 26px; height: 26px;
+    color: #FFD60A;
+    margin-bottom: 4px;
+  }
+  .announce .title { font-size: .95rem; font-weight: 700; color: #fff; }
+  .announce .name { font-size: .74rem; font-weight: 600; color: var(--stop-pink); }
+  .announce .score {
+    font-size: 2.7rem;
     font-weight: 800;
-    font-size: 1.15rem;
     color: #fff;
+    line-height: 1.05;
   }
-  .win .name { font-size: .78rem; font-weight: 700; color: rgba(0,0,0,.6); }
-  .win .score { font-size: 2.6rem; font-weight: 800; color: #fff; line-height: 1; }
-  .win .again {
-    margin-top: 10px;
-    font-size: .58rem;
-    font-weight: 700;
-    color: #1a1a1a;
-    background: #fff;
+  .announce .unit { font-size: .6rem; font-weight: 600; color: var(--stop-pink); }
+  .win-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 18px;
+    flex: none;
+  }
+  .win-buttons .row { display: flex; gap: 6px; }
+  .win-buttons .btn {
+    flex: 1;
+    text-align: center;
     border-radius: 999px;
-    padding: 6px 16px;
+    padding: 7px 0;
+    font-size: .62rem;
+    font-weight: 700;
   }
-  .confetti { position: absolute; inset: 0; overflow: hidden; }
+  .win-buttons .btn.primary { background: #fff; color: var(--bg); }
+  /* a dark scrim, not translucent white: it holds white text over amber
+     just as it does over teal */
+  .win-buttons .btn.ghost {
+    background: rgba(0,0,0,.6);
+    color: #fff;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .win-buttons .btn.ghost svg { width: 10px; height: 10px; }
+
+  .confetti { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
   .confetti i {
     position: absolute;
     width: 5px; height: 9px;
@@ -903,37 +949,55 @@
       <div class="words">
         <p class="kicker">Someone wins</p>
         <h2>Hit the target and the table erupts.</h2>
-        <p>Reach the target and the game stops for a proper celebration &mdash;
-        confetti, the winner's name, the final score. Ties share the win.</p>
-        <p>Then it is one tap to keep playing, or to start over. Tulos
-        remembers your last five groups &mdash; setup opens on them as rows of
-        colored dots, so next Friday it is one tap to rematch the same table.</p>
+        <p>Reach the target and the winner's colour takes the whole table &mdash;
+        their score huge in the middle of it, confetti falling in everyone
+        else's colours. Ties share the win.</p>
+        <p>With the phone flat between two players the announcement prints
+        twice, one copy rotated, so nobody reads the result upside down. Share
+        the final scoreboard as an image, keep playing, or start over.</p>
+        <p>Tulos remembers your last five groups &mdash; setup opens on them as
+        rows of colored dots, so next Friday it is one tap to rematch the same
+        table.</p>
       </div>
       <!-- SWAP: screenshots/winner.png -->
       <div class="phone" aria-hidden="true">
-        <div class="screen">
+        <div class="screen win-screen">
           <div class="island"></div>
-          <div class="card c-pink win">
-            <div class="confetti">
-              <i style="background:var(--blue);left:12%;top:14%;transform:rotate(24deg)"></i>
-              <i style="background:var(--amber);left:26%;top:29%;transform:rotate(-38deg)"></i>
-              <i style="background:var(--teal);left:44%;top:9%;transform:rotate(63deg)"></i>
-              <i style="background:#fff;left:63%;top:22%;transform:rotate(-14deg)"></i>
-              <i style="background:var(--purple);left:80%;top:12%;transform:rotate(41deg)"></i>
-              <i style="background:var(--brown);left:18%;top:52%;transform:rotate(-57deg)"></i>
-              <i style="background:var(--red);left:72%;top:47%;transform:rotate(31deg)"></i>
-              <i style="background:#fff;left:88%;top:64%;transform:rotate(-22deg)"></i>
-              <i style="background:var(--blue);left:34%;top:74%;transform:rotate(48deg)"></i>
-              <i style="background:var(--amber);left:57%;top:83%;transform:rotate(-33deg)"></i>
-            </div>
-            <span class="crown">&#127942;</span>
+          <div class="confetti">
+            <i style="background:var(--blue);left:12%;top:14%;transform:rotate(24deg)"></i>
+            <i style="background:var(--blue);left:26%;top:29%;transform:rotate(-38deg)"></i>
+            <i style="background:var(--blue);left:44%;top:9%;transform:rotate(63deg)"></i>
+            <i style="background:var(--blue);left:63%;top:22%;transform:rotate(-14deg)"></i>
+            <i style="background:var(--blue);left:80%;top:12%;transform:rotate(41deg)"></i>
+            <i style="background:var(--blue);left:18%;top:52%;transform:rotate(-57deg)"></i>
+            <i style="background:var(--blue);left:72%;top:47%;transform:rotate(31deg)"></i>
+            <i style="background:var(--blue);left:88%;top:64%;transform:rotate(-22deg)"></i>
+            <i style="background:var(--blue);left:34%;top:74%;transform:rotate(48deg)"></i>
+            <i style="background:var(--blue);left:57%;top:83%;transform:rotate(-33deg)"></i>
+          </div>
+          <div class="announce flipped">
+            <svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 2h10v6a5 5 0 0 1-10 0V2Z"/><path fill="currentColor" d="M11 12h2v4h-2z"/><rect fill="currentColor" x="8" y="16" width="8" height="2" rx="1"/><path fill="none" stroke="currentColor" stroke-width="1.7" d="M7 4H4.6v1.8A3.4 3.4 0 0 0 8 9.2M17 4h2.4v1.8A3.4 3.4 0 0 1 16 9.2"/></svg>
             <span class="title">Winner!</span>
             <span class="name">Ana</span>
             <span class="score">10</span>
-            <span class="name">points</span>
-            <span class="again">Keep playing</span>
+            <span class="unit">points</span>
+          </div>
+          <div class="win-buttons">
+            <span class="btn primary">New game</span>
+            <div class="row">
+              <span class="btn ghost"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2 7.5 6.5 9 8l2-2v9h2V6l2 2 1.5-1.5L12 2Z"/><path fill="currentColor" d="M5 12H3v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8h-2v8H5v-8Z"/></svg>Share</span>
+              <span class="btn ghost">Keep playing</span>
+            </div>
+          </div>
+          <div class="announce">
+            <svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 2h10v6a5 5 0 0 1-10 0V2Z"/><path fill="currentColor" d="M11 12h2v4h-2z"/><rect fill="currentColor" x="8" y="16" width="8" height="2" rx="1"/><path fill="none" stroke="currentColor" stroke-width="1.7" d="M7 4H4.6v1.8A3.4 3.4 0 0 0 8 9.2M17 4h2.4v1.8A3.4 3.4 0 0 1 16 9.2"/></svg>
+            <span class="title">Winner!</span>
+            <span class="name">Ana</span>
+            <span class="score">10</span>
+            <span class="unit">points</span>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </section>
