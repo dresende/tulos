@@ -53,8 +53,19 @@
     --coral: #D85A30;
     --purple: #7F77DD;
     --amber: #EF9F27;
-    --red: #C92A35;
-    --brown: #8B5A2B;
+    --red: #F0323F;
+    --brown: #B27437;
+
+    /* dark same-hue text stops for names sitting on a fill, mirroring
+       PlayerColor.textStop (0.22x the fill) */
+    --stop-pink: #370B1E;
+    --stop-blue: #081637;
+    --stop-teal: #05221A;
+    --stop-coral: #2E0F05;
+    --stop-purple: #17133A;
+    --stop-amber: #2E1B02;
+    --stop-red: #350B0E;
+    --stop-brown: #271A0C;
 
     --radius: 20px;
   }
@@ -258,8 +269,16 @@
   .card .who {
     font-size: .62rem;
     font-weight: 700;
-    color: rgba(0,0,0,.62);
+    color: var(--stop, rgba(0,0,0,.62));
   }
+  .c-pink   { background: var(--pink);   --stop: var(--stop-pink); }
+  .c-blue   { background: var(--blue);   --stop: var(--stop-blue); }
+  .c-teal   { background: var(--teal);   --stop: var(--stop-teal); }
+  .c-coral  { background: var(--coral);  --stop: var(--stop-coral); }
+  .c-purple { background: var(--purple); --stop: var(--stop-purple); }
+  .c-amber  { background: var(--amber);  --stop: var(--stop-amber); }
+  .c-red    { background: var(--red);    --stop: var(--stop-red); }
+  .c-brown  { background: var(--brown);  --stop: var(--stop-brown); }
   .card .pts {
     font-size: clamp(1.6rem, 8cqw, 2.4rem);
     font-weight: 800;
@@ -267,7 +286,7 @@
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
-  .card.on-amber .pts { color: #2e1a02; }
+  .card.on-amber .pts { color: var(--stop-amber); }
   .chip {
     font-weight: 700;
     font-size: .52rem;
@@ -283,8 +302,7 @@
   .f2f { container-type: inline-size; }
   .f2f .pts { font-size: clamp(2.4rem, 24cqw, 4.4rem); }
   .f2f .who { font-size: .72rem; }
-  .f2f .top { background: var(--pink); transform: rotate(180deg); }
-  .f2f .bottom { background: var(--blue); }
+  .f2f .top { transform: rotate(180deg); }
   .f2f .divider {
     position: absolute;
     top: 50%; left: 0; right: 0;
@@ -357,7 +375,7 @@
   .sheet .row .amt { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
 
   /* winner */
-  .win { background: var(--pink); align-items: center; justify-content: center; gap: 6px; position: relative; }
+  .win { align-items: center; justify-content: center; gap: 6px; position: relative; }
   .win .crown { font-size: 1.4rem; }
   .win .title {
     font-weight: 800;
@@ -663,13 +681,13 @@
   <div class="phone" aria-hidden="true">
     <div class="screen f2f">
       <div class="island"></div>
-      <div class="card top"><span class="pts">9</span><span class="who">Ana</span></div>
+      <div class="card c-pink top"><span class="pts">9</span><span class="who">Ana</span></div>
       <div class="divider">
         <span class="chip flipped">FIRST TO 11</span>
         <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
         <span class="chip">FIRST TO 11</span>
       </div>
-      <div class="card bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
+      <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
     </div>
   </div>
 
@@ -704,13 +722,13 @@
       <div class="phone" aria-hidden="true">
         <div class="screen f2f">
           <div class="island"></div>
-          <div class="card top"><span class="pts">9</span><span class="who">Ana</span></div>
+          <div class="card c-pink top"><span class="pts">9</span><span class="who">Ana</span></div>
           <div class="divider">
             <span class="chip flipped">FIRST TO 11</span>
             <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
             <span class="chip">FIRST TO 11</span>
           </div>
-          <div class="card bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
+          <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
         </div>
       </div>
     </div>
@@ -741,14 +759,14 @@
       <div class="phone" aria-hidden="true">
         <div class="screen grid8">
           <div class="island"></div>
-          <div class="card" style="background:var(--pink)"><span class="who">Ana</span><span class="pts">24</span></div>
-          <div class="card" style="background:var(--blue)"><span class="who">Diogo</span><span class="pts">31</span></div>
-          <div class="card" style="background:var(--teal)"><span class="who">Jos&eacute;</span><span class="pts">18</span></div>
-          <div class="card" style="background:var(--coral)"><span class="who">Catarina</span><span class="pts">27</span></div>
-          <div class="card" style="background:var(--purple)"><span class="who">Ant&oacute;nio</span><span class="pts">22</span></div>
-          <div class="card on-amber" style="background:var(--amber)"><span class="who">Liliana</span><span class="pts">15</span></div>
-          <div class="card" style="background:var(--red)"><span class="who">Luis</span><span class="pts">29</span></div>
-          <div class="card" style="background:var(--brown)"><span class="who">Andrea</span><span class="pts">20</span></div>
+          <div class="card c-pink"><span class="who">Ana</span><span class="pts">24</span></div>
+          <div class="card c-blue"><span class="who">Diogo</span><span class="pts">31</span></div>
+          <div class="card c-teal"><span class="who">Jos&eacute;</span><span class="pts">18</span></div>
+          <div class="card c-coral"><span class="who">Catarina</span><span class="pts">27</span></div>
+          <div class="card c-purple"><span class="who">Ant&oacute;nio</span><span class="pts">22</span></div>
+          <div class="card on-amber c-amber"><span class="who">Liliana</span><span class="pts">15</span></div>
+          <div class="card c-red"><span class="who">Luis</span><span class="pts">29</span></div>
+          <div class="card c-brown"><span class="who">Andrea</span><span class="pts">20</span></div>
         </div>
       </div>
     </div>
@@ -804,7 +822,7 @@
       <div class="phone" aria-hidden="true">
         <div class="screen">
           <div class="island"></div>
-          <div class="card win">
+          <div class="card c-pink win">
             <div class="confetti">
               <i style="background:var(--blue);left:12%;top:14%;transform:rotate(24deg)"></i>
               <i style="background:var(--amber);left:26%;top:29%;transform:rotate(-38deg)"></i>
@@ -871,9 +889,9 @@
         <div class="screen pad-screen">
           <div class="island"></div>
           <div class="screen behind" style="border-radius:0">
-            <div class="card" style="background:var(--pink)"><span class="who">Ana</span><span class="pts">42</span></div>
-            <div class="card" style="background:var(--blue)"><span class="who">Diogo</span><span class="pts">57</span></div>
-            <div class="card" style="background:var(--teal)"><span class="who">Jos&eacute;</span><span class="pts">35</span></div>
+            <div class="card c-pink"><span class="who">Ana</span><span class="pts">42</span></div>
+            <div class="card c-blue"><span class="who">Diogo</span><span class="pts">57</span></div>
+            <div class="card c-teal"><span class="who">Jos&eacute;</span><span class="pts">35</span></div>
           </div>
           <div class="pad">
             <span class="val">+18</span>
