@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tulos — The score keeper for game night.</title>
+<meta name="description" content="Tulos turns your phone into the score keeper your game nights deserve. Two to eight players, bold colored cards, face-to-face mode, rounds, and scores on your lock screen. Pay once. No ads. No account.">
+<link rel="icon" href="icon-180.png" sizes="180x180">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tulos — The score keeper for game night.">
+<meta property="og:description" content="Bold colored cards, face-to-face mode for two, rounds for card games, and scores on your lock screen. Pay once. No ads. No account.">
+<meta property="og:image" content="https://dresende.github.io/tulos/icon-512.png">
+<meta property="og:url" content="https://dresende.github.io/tulos/">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@125,700..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<!--
+  THE PHONE MOCKUPS ARE CSS ON PURPOSE
+  ------------------------------------
+  Every `.phone` below draws an app screen in HTML/CSS rather than embedding a
+  screenshot. Six real PNGs would add ~600 KB (and double that for retina); the
+  entire page is 34 KB. They also stay crisp at any density, reflow on a narrow
+  phone, and take their colors from the `--pink`…`--brown` tokens, so the whole
+  cast restyles from one block instead of a re-shoot.
+
+  The tradeoff: they are a rendition, not the product, so they only stay honest
+  if someone keeps them in step with the app. The palette below mirrors
+  `PlayerColor.fill` in ios-scorekeeper/Shared/Theme.swift, and the in-screen
+  copy mirrors Shared/Localizable.xcstrings. If either changes, change it here.
+
+  Real screenshots are still needed for App Store Connect; generate those with
+  ios-scorekeeper/scripts/screenshots.sh.
+-->
+
+<style>
+  :root {
+    color-scheme: dark;
+
+    --bg: #141414;            /* the app's own table canvas */
+    --bg-deep: #0d0d0d;
+    --panel: #1e1e1e;
+    --panel-edge: #2e2e2e;
+    --ink: #f2f2f2;
+    --ink-dim: #a3a3a3;
+
+    /* the eight player fills, straight from Shared/Theme.swift */
+    --pink: #E84C8A;
+    --blue: #3A7AF0;
+    --teal: #1D9E75;
+    --coral: #D85A30;
+    --purple: #7F77DD;
+    --amber: #EF9F27;
+    --red: #C92A35;
+    --brown: #8B5A2B;
+
+    --radius: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Atkinson Hyperlegible", -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--pink); color: #fff; }
+
+  h1, h2, h3, .display {
+    font-family: "Anybody", "Atkinson Hyperlegible", sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+  }
+
+  a { color: var(--pink); }
+  a:focus-visible, button:focus-visible {
+    outline: 3px solid var(--pink);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  img { max-width: 100%; display: block; }
+
+  /* ---------- atmosphere ---------- */
+  .atmosphere {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(60vw 60vw at 82% -12%, rgba(232,76,138,.20), transparent 62%),
+      radial-gradient(52vw 52vw at -12% 34%, rgba(58,122,240,.16), transparent 62%),
+      radial-gradient(70vw 50vw at 50% 112%, rgba(29,158,117,.08), transparent 60%),
+      var(--bg);
+  }
+  .atmosphere::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- nav ---------- */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 22px clamp(20px, 5vw, 56px);
+  }
+  .wordmark {
+    font-family: "Anybody", sans-serif;
+    font-stretch: 125%;
+    font-weight: 900;
+    font-size: 1.25rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .wordmark span { color: var(--pink); }
+  nav .links { display: flex; gap: clamp(16px, 3vw, 26px); }
+  nav .links a {
+    color: var(--ink-dim);
+    text-decoration: none;
+    font-size: .95rem;
+  }
+  nav .links a:hover { color: var(--ink); }
+
+  /* ---------- hero ---------- */
+  header.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 4vh 24px 6vh;
+  }
+  .tagline {
+    font-size: clamp(1.9rem, 5.5vw, 3.4rem);
+    max-width: 18ch;
+    animation: rise .8s cubic-bezier(.2,.9,.3,1) both;
+  }
+  .tagline em { font-style: normal; color: var(--pink); }
+
+  .hero .phone { margin: 5vh 0 0; animation: rise .8s .12s cubic-bezier(.2,.9,.3,1) both; }
+
+  .hint {
+    margin-top: 4vh;
+    color: var(--ink-dim);
+    font-size: 1.05rem;
+    max-width: 34ch;
+    animation: rise .8s .24s cubic-bezier(.2,.9,.3,1) both;
+  }
+  .hint b { color: var(--ink); }
+
+  .appstore {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 3.4vh;
+    font-family: "Anybody", sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    font-size: clamp(.95rem, 2.4vw, 1.15rem);
+    color: #fff;
+    background: linear-gradient(135deg, var(--pink), #b3306a);
+    text-decoration: none;
+    padding: 15px 28px;
+    border-radius: 999px;
+    box-shadow: 0 18px 40px -12px rgba(232,76,138,.5);
+    animation: rise .8s .36s cubic-bezier(.2,.9,.3,1) both;
+  }
+  .appstore.soon {
+    background: none;
+    border: 1px solid var(--panel-edge);
+    color: var(--ink-dim);
+    box-shadow: none;
+    cursor: default;
+  }
+  .appstore svg { width: 1.1em; height: 1.1em; fill: currentColor; flex: none; }
+
+  .platforms {
+    margin-top: 2.4vh;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: rise .8s .48s cubic-bezier(.2,.9,.3,1) both;
+  }
+  .pill {
+    font-size: .85rem;
+    color: var(--ink-dim);
+    border: 1px solid var(--panel-edge);
+    border-radius: 999px;
+    padding: 6px 14px;
+    background: rgba(30,30,30,.6);
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(26px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---------- phone frame ---------- */
+  .phone {
+    width: 100%;
+    max-width: 288px;
+    aspect-ratio: 402 / 874;
+    padding: 9px;
+    border-radius: 50px;
+    background: linear-gradient(160deg, #4a4a4a, #171717 42%, #101010);
+    box-shadow:
+      0 40px 90px -24px rgba(0,0,0,.85),
+      inset 0 1px 0 rgba(255,255,255,.14);
+    flex: none;
+  }
+  .screen {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    border-radius: 42px;
+    overflow: hidden;
+    background: var(--bg-deep);
+    display: flex;
+    flex-direction: column;
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, "Trebuchet MS", sans-serif;
+    font-weight: 600;
+  }
+  .island {
+    position: absolute;
+    top: 9px; left: 50%;
+    transform: translateX(-50%);
+    width: 31%; height: 20px;
+    background: #000;
+    border-radius: 999px;
+    z-index: 5;
+  }
+
+  /* shared bits of the stand-in screens */
+  .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 0;
+  }
+  .card .who {
+    font-size: .62rem;
+    font-weight: 700;
+    color: rgba(0,0,0,.62);
+  }
+  .card .pts {
+    font-size: clamp(1.6rem, 8cqw, 2.4rem);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .card.on-amber .pts { color: #2e1a02; }
+  .chip {
+    font-weight: 700;
+    font-size: .52rem;
+    letter-spacing: .1em;
+    color: #fff;
+    background: rgba(0,0,0,.6);
+    border-radius: 999px;
+    padding: 4px 12px;
+    white-space: nowrap;
+  }
+
+  /* face to face */
+  .f2f { container-type: inline-size; }
+  .f2f .pts { font-size: clamp(2.4rem, 24cqw, 4.4rem); }
+  .f2f .who { font-size: .72rem; }
+  .f2f .top { background: var(--pink); transform: rotate(180deg); }
+  .f2f .bottom { background: var(--blue); }
+  .f2f .divider {
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 4;
+  }
+  .f2f .divider .chip.flipped { transform: rotate(180deg); }
+  .undo {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .58rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(0,0,0,.62);
+    border-radius: 999px;
+    padding: 6px 13px;
+  }
+  .undo .ago { color: rgba(255,255,255,.6); font-weight: 400; }
+
+  /* the 3–8 player grid */
+  .grid8 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    container-type: inline-size;
+  }
+  .grid8 .card { padding: 4px; }
+  .grid8 .pts { font-size: clamp(1.3rem, 13cqw, 2.1rem); }
+
+  /* rounds / history sheet */
+  .sheet {
+    background: #1c1c1c;
+    padding: 30px 14px 14px;
+    gap: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .sheet h4 {
+    font-weight: 700;
+    font-size: .8rem;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .sheet .round {
+    font-size: .5rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 10px 0 4px;
+  }
+  .sheet .row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .6rem;
+    color: var(--ink);
+    padding: 4px 0;
+    border-bottom: 1px solid #262626;
+  }
+  .sheet .row .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .sheet .row .amt { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* winner */
+  .win { background: var(--pink); align-items: center; justify-content: center; gap: 6px; position: relative; }
+  .win .crown { font-size: 1.4rem; }
+  .win .title {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #fff;
+  }
+  .win .name { font-size: .78rem; font-weight: 700; color: rgba(0,0,0,.6); }
+  .win .score { font-size: 2.6rem; font-weight: 800; color: #fff; line-height: 1; }
+  .win .again {
+    margin-top: 10px;
+    font-size: .58rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    background: #fff;
+    border-radius: 999px;
+    padding: 6px 16px;
+  }
+  .confetti { position: absolute; inset: 0; overflow: hidden; }
+  .confetti i {
+    position: absolute;
+    width: 5px; height: 9px;
+    border-radius: 1px;
+    opacity: .92;
+  }
+
+  /* number pad */
+  .pad-screen { position: relative; }
+  .pad-screen .behind { filter: brightness(.42); }
+  .pad {
+    position: absolute;
+    inset: auto 10px 12px;
+    background: #232323;
+    border: 1px solid #333;
+    border-radius: 18px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    z-index: 3;
+  }
+  .pad .val {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .pad b {
+    background: #2f2f2f;
+    border-radius: 8px;
+    padding: 7px 0;
+    text-align: center;
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .pad b.go { background: var(--pink); color: #fff; grid-column: 1 / -1; }
+
+  /* lock screen */
+  .lock {
+    background:
+      radial-gradient(80% 60% at 30% 8%, rgba(58,122,240,.30), transparent 70%),
+      radial-gradient(70% 50% at 80% 30%, rgba(232,76,138,.24), transparent 70%),
+      #0a0a0a;
+    padding: 46px 14px 14px;
+    gap: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .lock .clock {
+    font-weight: 700;
+    font-size: 2.7rem;
+    line-height: 1;
+    color: #fff;
+  }
+  .lock .date { font-size: .58rem; color: rgba(255,255,255,.72); margin-bottom: 18px; }
+  .la {
+    width: 100%;
+    background: rgba(30,30,30,.78);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 16px;
+    padding: 10px 11px;
+    backdrop-filter: blur(8px);
+  }
+  .la .head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .52rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 7px;
+  }
+  .la .head img { width: 13px; height: 13px; border-radius: 3px; }
+  .la .row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .62rem;
+    color: #fff;
+    padding: 3px 0;
+  }
+  .la .row .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .la .row .n { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .la .row .plus {
+    font-size: .56rem;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(255,255,255,.16);
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin-left: 8px;
+  }
+
+  /* ---------- sections ---------- */
+  main { max-width: 1060px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 56px) 40px; }
+
+  section { margin: 13vh 0; }
+
+  .kicker {
+    font-family: "Anybody", sans-serif;
+    font-stretch: 125%;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    font-size: .8rem;
+    color: var(--pink);
+    margin-bottom: 14px;
+  }
+  section h2 {
+    font-size: clamp(1.7rem, 4vw, 2.6rem);
+    max-width: 22ch;
+    margin-bottom: 22px;
+  }
+  section p { color: var(--ink-dim); max-width: 46ch; }
+  section p + p { margin-top: 12px; }
+
+  .reveal { transition: opacity .7s, transform .7s cubic-bezier(.2,.9,.3,1); }
+  html.js .reveal { opacity: 0; transform: translateY(30px); }
+  html.js .reveal.in { opacity: 1; transform: none; }
+
+  /* text beside a phone */
+  .feature {
+    display: flex;
+    align-items: center;
+    gap: clamp(28px, 6vw, 64px);
+    flex-wrap: wrap;
+  }
+  .feature .words { flex: 1 1 300px; min-width: min(300px, 100%); }
+  .feature.flip { flex-direction: row-reverse; }
+  @media (max-width: 700px) {
+    .feature, .feature.flip { flex-direction: column; align-items: flex-start; }
+    .feature .phone { align-self: center; }
+  }
+
+  /* the eight colors */
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .swatches span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .82rem;
+    color: var(--ink-dim);
+    border: 1px solid var(--panel-edge);
+    border-radius: 999px;
+    padding: 5px 13px 5px 8px;
+  }
+  .swatches i { width: 13px; height: 13px; border-radius: 50%; }
+
+  /* feel list */
+  .feel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px 40px;
+  }
+  .feel li {
+    list-style: none;
+    padding: 14px 0 14px 34px;
+    position: relative;
+    color: var(--ink-dim);
+    border-bottom: 1px solid #262626;
+  }
+  .feel li::before {
+    content: "";
+    position: absolute;
+    left: 4px; top: 22px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--pink);
+    box-shadow: 0 0 12px rgba(232,76,138,.8);
+  }
+  .feel li:nth-child(even)::before { background: var(--blue); box-shadow: 0 0 12px rgba(58,122,240,.8); }
+  .feel li b { color: var(--ink); }
+
+  /* panels */
+  .split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+  }
+  .panel {
+    background: linear-gradient(165deg, var(--panel), rgba(30,30,30,.4));
+    border: 1px solid var(--panel-edge);
+    border-radius: var(--radius);
+    padding: 34px 30px;
+  }
+  .panel h2 { font-size: 1.5rem; margin-bottom: 12px; max-width: none; }
+  .panel p { color: var(--ink-dim); max-width: none; }
+  .panel.privacy { border-color: rgba(29,158,117,.4); }
+  .panel.privacy .kicker { color: var(--teal); }
+  .panel.privacy a { color: var(--teal); }
+
+  /* more from us */
+  .sibling {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: linear-gradient(165deg, var(--panel), rgba(30,30,30,.4));
+    border: 1px solid var(--panel-edge);
+    border-radius: var(--radius);
+    padding: 22px 26px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color .3s, transform .3s cubic-bezier(.2,.9,.3,1);
+  }
+  .sibling:hover { border-color: #5a6cf0; transform: translateY(-4px); }
+  .sibling .mark {
+    width: 52px; height: 52px;
+    border-radius: 13px;
+    flex: none;
+    background: linear-gradient(160deg, #5a6cf0, #2f3aa8);
+    display: grid;
+    place-items: center;
+    font-family: "Anybody", sans-serif;
+    font-stretch: 125%;
+    font-weight: 900;
+    color: #fff;
+    font-size: 1.3rem;
+  }
+  .sibling h3 { font-size: 1.1rem; margin-bottom: 3px; }
+  .sibling p { color: var(--ink-dim); font-size: .92rem; max-width: none; }
+
+  /* support */
+  #support { text-align: center; }
+  #support h2 { margin: 0 auto 14px; }
+  #support p { max-width: 46ch; margin: 0 auto; }
+  .mail {
+    display: inline-block;
+    margin-top: 26px;
+    font-family: "Anybody", sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: #fff;
+    background: linear-gradient(135deg, var(--pink), #b3306a);
+    text-decoration: none;
+    padding: 16px 30px;
+    border-radius: 999px;
+    box-shadow: 0 18px 40px -12px rgba(232,76,138,.5);
+    transition: transform .25s cubic-bezier(.2,.9,.3,1), box-shadow .25s;
+    word-break: break-word;
+  }
+  .mail:hover { transform: translateY(-3px); box-shadow: 0 24px 50px -12px rgba(232,76,138,.7); }
+
+  footer {
+    border-top: 1px solid #262626;
+    margin-top: 10vh;
+    padding: 34px clamp(20px, 5vw, 56px) 44px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 30px;
+    justify-content: space-between;
+    color: var(--ink-dim);
+    font-size: .9rem;
+  }
+  footer a { color: var(--ink-dim); }
+  footer a:hover { color: var(--ink); }
+  footer .fi { font-style: italic; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="atmosphere" aria-hidden="true"></div>
+
+<nav>
+  <a class="wordmark" href="#">Tulos<span>.</span></a>
+  <div class="links">
+    <a href="#support">Support</a>
+    <a href="privacy.html">Privacy</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <h1 class="tagline">The score keeper for <em>game night</em>.</h1>
+
+  <!-- SWAP: screenshots/face-to-face.png -->
+  <div class="phone" aria-hidden="true">
+    <div class="screen f2f">
+      <div class="island"></div>
+      <div class="card top"><span class="pts">9</span><span class="who">Ana</span></div>
+      <div class="divider">
+        <span class="chip flipped">FIRST TO 11</span>
+        <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
+        <span class="chip">FIRST TO 11</span>
+      </div>
+      <div class="card bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
+    </div>
+  </div>
+
+  <p class="hint"><b>Pay once. No ads. No account.</b> Just play.</p>
+
+  <span class="appstore soon">
+    <svg viewBox="0 0 384 512" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+    Coming soon to the App Store
+  </span>
+
+  <div class="platforms">
+    <span class="pill">iPhone</span>
+    <span class="pill">iPad</span>
+    <span class="pill">Lock Screen</span>
+  </div>
+</header>
+
+<main>
+  <section class="reveal">
+    <div class="feature">
+      <div class="words">
+        <p class="kicker">Two players</p>
+        <h2>Lay the phone flat. The screen splits face to face.</h2>
+        <p>The screen divides in half and the top half flips upside down, so
+        each player reads their own score the right way up. Tap your half to
+        score, swipe down to take a point back.</p>
+        <p>The split is a fixed 50&#8211;50 &mdash; a fair playing field however
+        far ahead you are &mdash; and the divider between you carries the
+        target: <b>first to 11</b>.</p>
+      </div>
+      <!-- SWAP: screenshots/face-to-face.png -->
+      <div class="phone" aria-hidden="true">
+        <div class="screen f2f">
+          <div class="island"></div>
+          <div class="card top"><span class="pts">9</span><span class="who">Ana</span></div>
+          <div class="divider">
+            <span class="chip flipped">FIRST TO 11</span>
+            <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
+            <span class="chip">FIRST TO 11</span>
+          </div>
+          <div class="card bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="feature flip">
+      <div class="words">
+        <p class="kicker">Three to eight</p>
+        <h2>Everyone gets a card. The color is the name.</h2>
+        <p>Add up to eight players. Typing a name is optional &mdash; the color
+        is the identity, and there is not an avatar in sight. Three players
+        stack as full-width rows; four to eight tile in pairs.</p>
+        <p>Whatever the layout, the whole card is still the button. You cannot
+        miss.</p>
+        <div class="swatches">
+          <span><i style="background:var(--pink)"></i>Pink</span>
+          <span><i style="background:var(--blue)"></i>Blue</span>
+          <span><i style="background:var(--teal)"></i>Teal</span>
+          <span><i style="background:var(--coral)"></i>Coral</span>
+          <span><i style="background:var(--purple)"></i>Purple</span>
+          <span><i style="background:var(--amber)"></i>Amber</span>
+          <span><i style="background:var(--red)"></i>Red</span>
+          <span><i style="background:var(--brown)"></i>Brown</span>
+        </div>
+      </div>
+      <!-- SWAP: screenshots/players.png -->
+      <div class="phone" aria-hidden="true">
+        <div class="screen grid8">
+          <div class="island"></div>
+          <div class="card" style="background:var(--pink)"><span class="who">Ana</span><span class="pts">24</span></div>
+          <div class="card" style="background:var(--blue)"><span class="who">Diogo</span><span class="pts">31</span></div>
+          <div class="card" style="background:var(--teal)"><span class="who">Jos&eacute;</span><span class="pts">18</span></div>
+          <div class="card" style="background:var(--coral)"><span class="who">Catarina</span><span class="pts">27</span></div>
+          <div class="card" style="background:var(--purple)"><span class="who">Ant&oacute;nio</span><span class="pts">22</span></div>
+          <div class="card on-amber" style="background:var(--amber)"><span class="who">Liliana</span><span class="pts">15</span></div>
+          <div class="card" style="background:var(--red)"><span class="who">Luis</span><span class="pts">29</span></div>
+          <div class="card" style="background:var(--brown)"><span class="who">Andrea</span><span class="pts">20</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="feature">
+      <div class="words">
+        <p class="kicker">Card games</p>
+        <h2>Score in rounds. Tulos does the totals.</h2>
+        <p>Switch scoring from a running total to rounds, deal the next hand,
+        and Tulos adds them up for you. Win conditions settle between rounds,
+        the way card games actually work.</p>
+        <p>Play to any target you like &mdash; and decide whether the
+        <b>highest</b> total wins, or the <b>lowest</b>, for Hearts and golf.</p>
+      </div>
+      <!-- SWAP: screenshots/rounds.png -->
+      <div class="phone" aria-hidden="true">
+        <div class="screen">
+          <div class="island"></div>
+          <div class="sheet">
+            <h4>History</h4>
+            <p class="round">Round 3</p>
+            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="amt">+18</span></div>
+            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="amt">+27</span></div>
+            <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="amt">+30</span></div>
+            <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="amt">+11</span></div>
+            <p class="round">Round 2</p>
+            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="amt">+31</span></div>
+            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="amt">+14</span></div>
+            <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="amt">+22</span></div>
+            <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="amt">+9</span></div>
+            <p class="round">Round 1</p>
+            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="amt">+12</span></div>
+            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="amt">+25</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="feature flip">
+      <div class="words">
+        <p class="kicker">Someone wins</p>
+        <h2>Hit the target and the table erupts.</h2>
+        <p>Reach the target and the game stops for a proper celebration &mdash;
+        confetti, the winner's name, the final score. Ties share the win.</p>
+        <p>Then it is one tap to keep playing, or to start over. Tulos
+        remembers your last group, so next Friday it is one tap to rematch.</p>
+      </div>
+      <!-- SWAP: screenshots/winner.png -->
+      <div class="phone" aria-hidden="true">
+        <div class="screen">
+          <div class="island"></div>
+          <div class="card win">
+            <div class="confetti">
+              <i style="background:var(--blue);left:12%;top:14%;transform:rotate(24deg)"></i>
+              <i style="background:var(--amber);left:26%;top:29%;transform:rotate(-38deg)"></i>
+              <i style="background:var(--teal);left:44%;top:9%;transform:rotate(63deg)"></i>
+              <i style="background:#fff;left:63%;top:22%;transform:rotate(-14deg)"></i>
+              <i style="background:var(--purple);left:80%;top:12%;transform:rotate(41deg)"></i>
+              <i style="background:var(--brown);left:18%;top:52%;transform:rotate(-57deg)"></i>
+              <i style="background:var(--red);left:72%;top:47%;transform:rotate(31deg)"></i>
+              <i style="background:#fff;left:88%;top:64%;transform:rotate(-22deg)"></i>
+              <i style="background:var(--blue);left:34%;top:74%;transform:rotate(48deg)"></i>
+              <i style="background:var(--amber);left:57%;top:83%;transform:rotate(-33deg)"></i>
+            </div>
+            <span class="crown">&#127942;</span>
+            <span class="title">Winner!</span>
+            <span class="name">Ana</span>
+            <span class="score">11</span>
+            <span class="name">points</span>
+            <span class="again">Keep playing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="feature">
+      <div class="words">
+        <p class="kicker">On the lock screen</p>
+        <h2>The score, without unlocking.</h2>
+        <p>A running game stays on the lock screen as a live scoreboard, sorted
+        by who is ahead. Glance down between hands and the numbers are there.</p>
+        <p>Long-press the Dynamic Island and the full standings open with a
+        <b>+1</b> next to every player &mdash; score without ever unlocking the
+        phone.</p>
+      </div>
+      <!-- SWAP: screenshots/live-activity.png -->
+      <div class="phone" aria-hidden="true">
+        <div class="screen lock">
+          <div class="island"></div>
+          <span class="clock">21:41</span>
+          <span class="date">Friday, 21 August</span>
+          <div class="la">
+            <div class="head"><img src="icon-180.png" alt=""> Tulos &middot; First to 100</div>
+            <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="n">70</span><span class="plus">+1</span></div>
+            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="n">66</span><span class="plus">+1</span></div>
+            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="n">61</span><span class="plus">+1</span></div>
+            <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="n">39</span><span class="plus">+1</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="feature flip">
+      <div class="words">
+        <p class="kicker">Feels like an object</p>
+        <h2>Designed around the tap.</h2>
+        <p>No toolbars, no tabs, no chrome during play. The score <em>is</em>
+        the interface, in type big enough to read across a table.</p>
+      </div>
+      <!-- SWAP: screenshots/number-pad.png -->
+      <div class="phone" aria-hidden="true">
+        <div class="screen pad-screen">
+          <div class="island"></div>
+          <div class="screen behind" style="border-radius:0">
+            <div class="card" style="background:var(--pink)"><span class="who">Ana</span><span class="pts">42</span></div>
+            <div class="card" style="background:var(--blue)"><span class="who">Diogo</span><span class="pts">57</span></div>
+            <div class="card" style="background:var(--teal)"><span class="who">Jos&eacute;</span><span class="pts">35</span></div>
+          </div>
+          <div class="pad">
+            <span class="val">+18</span>
+            <b>1</b><b>2</b><b>3</b>
+            <b>4</b><b>5</b><b>6</b>
+            <b>7</b><b>8</b><b>9</b>
+            <b>&plusmn;</b><b>0</b><b>&#9003;</b>
+            <b class="go">Add</b>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="feel" style="margin-top:8vh">
+      <li><b>The whole card is the button</b> &mdash; tap anywhere, or swipe up, for +1.</li>
+      <li><b>Swipe down</b> to take a point back when someone miscounts.</li>
+      <li><b>Long-press for a custom amount</b> &mdash; a number pad for Scrabble scores.</li>
+      <li><b>A crisp haptic tick on every tap</b>, and a stronger pulse on every tenth.</li>
+      <li><b>Undo names the last action</b> &mdash; "Ana +10, 2 min ago" &mdash; and one tap takes it back.</li>
+      <li><b>Every point is in the history</b>, round by round.</li>
+      <li><b>It says the score out loud</b> if you want &mdash; "9 to 7", "Ana wins!" &mdash; offline, in your language.</li>
+      <li><b>The screen never sleeps</b> mid-game, and VoiceOver reads every card.</li>
+    </ul>
+  </section>
+
+  <section class="reveal">
+    <div class="split">
+      <div class="panel">
+        <p class="kicker">Pay once</p>
+        <h2>&euro;0.99. That is the whole business model.</h2>
+        <p>No subscription, no ads, no in-app purchases, no upsell at the
+        moment someone wins. Buy it once and it is yours.</p>
+        <p>Download it mid-game-night and you are scoring in seconds.</p>
+      </div>
+      <div class="panel privacy">
+        <p class="kicker">Private by design</p>
+        <h2>No accounts. No ads. No network.</h2>
+        <p>Tulos collects nothing and connects to nothing &mdash; there is no
+        network code in the app at all. Your games live on your phone and
+        nowhere else.</p>
+        <p>Spoken scores use the voices built into iOS, entirely offline.</p>
+        <p><a href="privacy.html">Read the full privacy policy &rarr;</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <p class="kicker">More from us</p>
+    <h2>Same promise, different number.</h2>
+    <a class="sibling" href="https://apps.apple.com/app/mittari/id6802587264">
+      <span class="mark" aria-hidden="true">M</span>
+      <span>
+        <h3>Mittari</h3>
+        <p>The tally counter. Pay once, count anything.</p>
+      </span>
+    </a>
+  </section>
+
+  <section id="support" class="reveal">
+    <p class="kicker">Support</p>
+    <h2>Questions? Ideas? Something broken?</h2>
+    <p>Tulos is made by one person who reads every email. Bug reports, feature
+    requests, or the name of a game it should handle better:</p>
+    <a class="mail" href="mailto:dresende@thinkdigital.pt">dresende@thinkdigital.pt</a>
+  </section>
+</main>
+
+<footer>
+  <span>&copy; 2026 Diogo Resende</span>
+  <span class="fi">tulos &mdash; Finnish for &ldquo;score&rdquo;.</span>
+  <a href="privacy.html">Privacy Policy</a>
+</footer>
+
+<script>
+(function () {
+  // Scroll reveals — the hidden state only applies once JS is running, so the
+  // page is fully readable without it.
+  document.documentElement.classList.add("js");
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        en.target.classList.add("in");
+        io.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+})();
+</script>
+</body>
+</html>
