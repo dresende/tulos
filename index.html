@@ -336,6 +336,79 @@
   .grid8 .card { padding: 4px; }
   .grid8 .pts { font-size: clamp(1.3rem, 13cqw, 2.1rem); }
 
+  /* the score pad: rounds down the side, players across the top */
+  .pad-sheet {
+    padding: 34px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    font-variant-numeric: tabular-nums;
+  }
+  .pad-sheet .tabs {
+    display: flex;
+    gap: 2px;
+    background: #2a2a2a;
+    border-radius: 7px;
+    padding: 2px;
+    margin: 0 4px 10px;
+    font-size: .55rem;
+    font-weight: 600;
+  }
+  .pad-sheet .tabs span {
+    flex: 1;
+    text-align: center;
+    padding: 3px 0;
+    border-radius: 5px;
+    color: var(--ink-dim);
+  }
+  .pad-sheet .tabs span.on { background: #6a6a6a; color: #fff; }
+  .pad-sheet table { width: 100%; border-collapse: collapse; }
+  .pad-sheet th, .pad-sheet td {
+    text-align: center;
+    font-size: .58rem;
+    font-weight: 500;
+    padding: 5px 0;
+    color: #fff;
+  }
+  .pad-sheet thead th { border-bottom: 1px solid rgba(255,255,255,.14); }
+  .pad-sheet th .dot {
+    display: block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin: 0 auto 3px;
+  }
+  .pad-sheet th span.nm { font-size: .5rem; font-weight: 600; }
+  .pad-sheet .rlabel {
+    font-size: .52rem;
+    font-weight: 600;
+    color: var(--ink-dim);
+    width: 22px;
+  }
+  /* the hand in progress reads as the live row */
+  .pad-sheet tr.open { background: rgba(255,255,255,.06); }
+  .pad-sheet tr.open .rlabel { color: #fff; }
+  .pad-sheet .zero { color: rgba(163,163,163,.5); }
+  .pad-sheet tr.totals td, .pad-sheet tr.totals .rlabel {
+    border-top: 1px solid rgba(255,255,255,.14);
+    font-weight: 800;
+    padding-top: 7px;
+    color: #fff;
+  }
+  .pad-sheet tr.totals .lead { color: var(--amber); }
+
+  /* the DEALER capsule, shown inline in prose */
+  .dealer-chip {
+    display: inline-block;
+    font-size: .62em;
+    font-weight: 800;
+    letter-spacing: .08em;
+    color: var(--pink);
+    background: var(--stop-pink);
+    border-radius: 999px;
+    padding: 2px 7px;
+    vertical-align: 2px;
+  }
+
   /* rounds / history sheet */
   .sheet {
     background: #1c1c1c;
@@ -483,15 +556,6 @@
   }
   .la .row .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
   .la .row .n { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .la .row .plus {
-    font-size: .56rem;
-    font-weight: 800;
-    color: #fff;
-    background: rgba(255,255,255,.16);
-    border-radius: 999px;
-    padding: 2px 8px;
-    margin-left: 8px;
-  }
 
   /* ---------- sections ---------- */
   main { max-width: 1060px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 56px) 40px; }
@@ -791,9 +855,14 @@
       <div class="words">
         <p class="kicker">Card games</p>
         <h2>Score in rounds. Tulos does the totals.</h2>
-        <p>Switch scoring from a running total to rounds, deal the next hand,
-        and Tulos adds them up for you. Win conditions settle between rounds,
-        the way card games actually work.</p>
+        <p>Switch scoring from a running total to rounds and you get a real
+        score pad: rounds down the side, players across the top, totals along
+        the bottom. The hand in progress stays highlighted, and Tulos adds it
+        all up for you.</p>
+        <p>A <span class="dealer-chip">DEALER</span> marker sits beside whoever
+        deals, and passes one seat along with the hand at the end of every
+        round. Win conditions settle between rounds, the way card games
+        actually work.</p>
         <p>Play to any target you like &mdash; and decide whether the
         <b>highest</b> total wins, or the <b>lowest</b>, for Hearts and golf.</p>
       </div>
@@ -801,21 +870,28 @@
       <div class="phone" aria-hidden="true">
         <div class="screen">
           <div class="island"></div>
-          <div class="sheet">
-            <h4>History</h4>
-            <p class="round">Round 3</p>
-            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="amt">+18</span></div>
-            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="amt">+27</span></div>
-            <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="amt">+30</span></div>
-            <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="amt">+11</span></div>
-            <p class="round">Round 2</p>
-            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="amt">+31</span></div>
-            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="amt">+14</span></div>
-            <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="amt">+22</span></div>
-            <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="amt">+9</span></div>
-            <p class="round">Round 1</p>
-            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="amt">+12</span></div>
-            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="amt">+25</span></div>
+          <div class="pad-sheet">
+            <div class="tabs"><span class="on">Sheet</span><span>Log</span></div>
+            <table>
+              <thead>
+                <tr>
+                  <th class="rlabel"></th>
+                  <th><i class="dot" style="background:var(--pink)"></i><span class="nm">Ana</span></th>
+                  <th><i class="dot" style="background:var(--blue)"></i><span class="nm">Diogo</span></th>
+                  <th><i class="dot" style="background:var(--teal)"></i><span class="nm">Jos&eacute;</span></th>
+                  <th><i class="dot" style="background:var(--coral)"></i><span class="nm">Cata</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td class="rlabel">R1</td><td>12</td><td>25</td><td>8</td><td>19</td></tr>
+                <tr><td class="rlabel">R2</td><td>31</td><td>14</td><td>22</td><td>9</td></tr>
+                <tr><td class="rlabel">R3</td><td>18</td><td>27</td><td>30</td><td>11</td></tr>
+                <tr><td class="rlabel">R4</td><td>24</td><td>19</td><td>15</td><td>28</td></tr>
+                <tr><td class="rlabel">R5</td><td>9</td><td>33</td><td>21</td><td>17</td></tr>
+                <tr class="open"><td class="rlabel">R6</td><td>14</td><td>8</td><td>26</td><td class="zero">&mdash;</td></tr>
+                <tr class="totals"><td class="rlabel">Total</td><td>108</td><td class="lead">126</td><td>122</td><td>84</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -830,7 +906,8 @@
         <p>Reach the target and the game stops for a proper celebration &mdash;
         confetti, the winner's name, the final score. Ties share the win.</p>
         <p>Then it is one tap to keep playing, or to start over. Tulos
-        remembers your last group, so next Friday it is one tap to rematch.</p>
+        remembers your last five groups &mdash; setup opens on them as rows of
+        colored dots, so next Friday it is one tap to rematch the same table.</p>
       </div>
       <!-- SWAP: screenshots/winner.png -->
       <div class="phone" aria-hidden="true">
@@ -868,9 +945,8 @@
         <h2>The score, without unlocking.</h2>
         <p>A running game stays on the lock screen as a live scoreboard, sorted
         by who is ahead. Glance down between hands and the numbers are there.</p>
-        <p>Long-press the Dynamic Island and the full standings open with a
-        <b>+1</b> next to every player &mdash; score without ever unlocking the
-        phone.</p>
+        <p>The Dynamic Island carries it too &mdash; the leader at a glance
+        while it is collapsed, the full standings when it expands.</p>
       </div>
       <!-- SWAP: screenshots/live-activity.png -->
       <div class="phone" aria-hidden="true">
@@ -880,10 +956,10 @@
           <span class="date">Friday, 21 August</span>
           <div class="la">
             <div class="head"><img src="icon-180.png" alt=""> Tulos &middot; First to 100</div>
-            <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="n">70</span><span class="plus">+1</span></div>
-            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="n">66</span><span class="plus">+1</span></div>
-            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="n">61</span><span class="plus">+1</span></div>
-            <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="n">39</span><span class="plus">+1</span></div>
+            <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="n">70</span></div>
+            <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="n">66</span></div>
+            <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="n">61</span></div>
+            <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="n">39</span></div>
           </div>
         </div>
       </div>
@@ -924,7 +1000,8 @@
       <li><b>Long-press for a custom amount</b> &mdash; a number pad for Scrabble scores.</li>
       <li><b>A crisp haptic tick on every tap</b>, and a stronger pulse on every tenth.</li>
       <li><b>Undo names the last action</b> &mdash; "Ana +10, 2 min ago" &mdash; and one tap takes it back.</li>
-      <li><b>Every point is in the history</b>, round by round.</li>
+      <li><b>Every point is in the history</b> &mdash; the score pad for rounds,
+      a timestamped log for everything.</li>
       <li><b>It says the score out loud</b> if you want &mdash; "9 to 7", "Ana wins!" &mdash; offline, in your language.</li>
       <li><b>The screen never sleeps</b> mid-game, and VoiceOver reads every card.</li>
     </ul>
