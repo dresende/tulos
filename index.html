@@ -303,6 +303,26 @@
   .f2f .pts { font-size: clamp(2.4rem, 24cqw, 4.4rem); }
   .f2f .who { font-size: .72rem; }
   .f2f .top { transform: rotate(180deg); }
+  /* full-width cards teach the -1 swipe, the way the app does */
+  .hint-swipe {
+    font-size: .44rem;
+    font-weight: 600;
+    color: var(--stop, rgba(0,0,0,.55));
+    opacity: .8;
+    margin-top: 7px;
+  }
+  .menu-dot {
+    position: absolute;
+    top: 36px; right: 13px;
+    z-index: 4;
+    width: 19px; height: 19px;
+    border-radius: 50%;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    font-size: .5rem;
+    line-height: 17px;
+    text-align: center;
+  }
   .f2f .divider {
     position: absolute;
     top: 50%; left: 0; right: 0;
@@ -581,17 +601,13 @@
     padding: 10px 11px;
     backdrop-filter: blur(8px);
   }
-  .la .head {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: .52rem;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--ink-dim);
-    margin-bottom: 7px;
+  .la .target {
+    font-size: .5rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: rgba(255,255,255,.6);
+    margin-top: 7px;
   }
-  .la .head img { width: 13px; height: 13px; border-radius: 3px; }
   .la .row {
     display: flex;
     align-items: center;
@@ -804,14 +820,15 @@
   <!-- SWAP: screenshots/face-to-face.png -->
   <div class="phone" aria-hidden="true">
     <div class="screen f2f">
+          <span class="menu-dot" aria-hidden="true">&middot;&middot;&middot;</span>
       <div class="island"></div>
-      <div class="card c-pink top"><span class="pts">9</span><span class="who">Ana</span></div>
+      <div class="card c-pink top"><span class="who">Ana</span><span class="pts">9</span><span class="hint-swipe">&darr; Swipe down to subtract</span></div>
       <div class="divider">
         <span class="chip flipped">FIRST TO 10</span>
         <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
         <span class="chip">FIRST TO 10</span>
       </div>
-      <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
+      <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span><span class="hint-swipe">&darr; Swipe down to subtract</span></div>
     </div>
   </div>
 
@@ -845,14 +862,15 @@
       <!-- SWAP: screenshots/face-to-face.png -->
       <div class="phone" aria-hidden="true">
         <div class="screen f2f">
+          <span class="menu-dot" aria-hidden="true">&middot;&middot;&middot;</span>
           <div class="island"></div>
-          <div class="card c-pink top"><span class="pts">9</span><span class="who">Ana</span></div>
+          <div class="card c-pink top"><span class="who">Ana</span><span class="pts">9</span><span class="hint-swipe">&darr; Swipe down to subtract</span></div>
           <div class="divider">
             <span class="chip flipped">FIRST TO 10</span>
             <span class="undo">&#8630; Diogo +1 <span class="ago">2 min ago</span></span>
             <span class="chip">FIRST TO 10</span>
           </div>
-          <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span></div>
+          <div class="card c-blue bottom"><span class="who">Diogo</span><span class="pts">7</span><span class="hint-swipe">&darr; Swipe down to subtract</span></div>
         </div>
       </div>
     </div>
@@ -1019,11 +1037,11 @@
           <span class="clock">21:41</span>
           <span class="date">Friday, 21 August</span>
           <div class="la">
-            <div class="head"><img src="icon-180.png" alt=""> Tulos &middot; First to 100</div>
             <div class="row"><i class="dot" style="background:var(--teal)"></i>Jos&eacute;<span class="n">70</span></div>
             <div class="row"><i class="dot" style="background:var(--blue)"></i>Diogo<span class="n">66</span></div>
             <div class="row"><i class="dot" style="background:var(--pink)"></i>Ana<span class="n">61</span></div>
             <div class="row"><i class="dot" style="background:var(--coral)"></i>Catarina<span class="n">39</span></div>
+            <p class="target">First to 100</p>
           </div>
         </div>
       </div>
@@ -1035,8 +1053,10 @@
       <div class="words">
         <p class="kicker">Feels like an object</p>
         <h2>Designed around the tap.</h2>
-        <p>No toolbars, no tabs, no chrome during play. The score <em>is</em>
-        the interface, in type big enough to read across a table.</p>
+        <p>No toolbars, no tabs, no settings in your way. The only chrome
+        during a game is a menu button and the undo pill &mdash; the score
+        <em>is</em> the interface, in type big enough to read across a
+        table.</p>
       </div>
       <!-- SWAP: screenshots/number-pad.png -->
       <div class="phone" aria-hidden="true">
@@ -1099,9 +1119,9 @@
       <div class="panel privacy">
         <p class="kicker">Private by design</p>
         <h2>No accounts. No ads. No network.</h2>
-        <p>Tulos collects nothing and connects to nothing &mdash; there is no
-        network code in the app at all. Your games live on your phone and
-        nowhere else.</p>
+        <p>Tulos collects nothing and makes no network connections of any
+        kind &mdash; no analytics, no tracking, no third-party SDKs. Your games
+        live on your phone and nowhere else.</p>
         <p>Spoken scores use the voices built into iOS, entirely offline.</p>
         <p><a href="privacy.html">Read the full privacy policy &rarr;</a></p>
       </div>
